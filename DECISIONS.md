@@ -130,6 +130,27 @@ opt-out (`config-shared.d.ts`, `agentRules?: boolean`, default `true`).
 Discarded alternative: let it write and gitignore the diff, which desynchronises
 the local standard from the one CI reads.
 
+**`run.test.ts` was written after `run.ts`, breaking my own ordering rule.**
+AGENTS.md says all four permitted test files are written before the code they
+test. PLAN.md sequences T5 (spans, `run.ts`, route) before T5b (`run.test.ts`).
+The two documents disagree and I followed the plan, so the orchestrator existed
+untested. Faced with deleting fifty lines of orchestration already verified
+end to end by the curl gate, or writing the test late and recording the breach,
+I chose to record it: a rewrite would have reproduced near-identical code to buy
+confidence the gate had already given me. The other three test files were
+genuinely red first, and that is where test-first was doing design work rather
+than ceremony.
+
+The late test still earned its place within a minute of existing: it caught
+`retrieve()` calling the embedding model when the claim list was empty. The
+function guarded against zero chunks but not zero claims, so an empty draft
+embedded all ten transcript chunks for nobody - real latency and real money for
+a result that was always going to be empty. Fixed with a guard clause and pinned
+by a unit test in `retrieve.test.ts`, where the bug actually lived, rather than
+only end to end. Written first, that test would have caught it earlier. Written
+late, it still caught it - which is an argument for the test, not for the
+ordering.
+
 **New tools only with a gate.** Engram (agent memory) came in as optional with
 a 15-minute budget to record, in the heat of the moment, what I reject from the
 agent. If it does not pass the gate, it falls back to manual mode with no

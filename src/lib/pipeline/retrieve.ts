@@ -20,7 +20,7 @@ export async function retrieve(
   chunks: Chunk[],
   topK: number = TOP_K
 ): Promise<Retrieval[]> {
-  if (chunks.length === 0) {
+  if (claims.length === 0 || chunks.length === 0) {
     return claims.map((claim) => ({ claimId: claim.id, chunks: [] }));
   }
 

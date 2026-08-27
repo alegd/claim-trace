@@ -101,6 +101,13 @@ describe("retrieve", () => {
     ]);
   });
 
+  test("does not call the embedding model when there are no claims", async () => {
+    const retrievals = await retrieve([], [buildChunk("k1", "a turn")]);
+
+    expect(embed).not.toHaveBeenCalled();
+    expect(retrievals).toEqual([]);
+  });
+
   test("does not call the embedding model when there are no chunks", async () => {
     const retrievals = await retrieve([{ id: "c1", text: "the claim" }], []);
 
