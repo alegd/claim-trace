@@ -101,6 +101,19 @@ top of the first, which is exactly the seam the guardrails delete. Discarded
 alternative: that interface, rejected as forbidden by the guardrails and
 redundant against the SDK. `llm.ts` stays two plain functions.
 
+The other discarded alternative is the shorter one, and it is the reason this
+entry exists. Current AI SDK docs write embeddings as
+`embedMany({ model: 'openai/text-embedding-3-small' })` - a plain string, no
+provider import, no registry, which is strictly less code than what is here.
+It is rejected because of what that string does: *"by default, the global
+provider is set to the Vercel AI Gateway"*. Plain model ids route through
+Vercel's gateway rather than calling the provider directly, which would make
+the claim two sections below - that the SDK is an Apache-2.0 package with no
+platform coupling that would deploy to Coolify unchanged - simply false, and
+would move authentication from the `OPENAI_API_KEY` already in the project
+environment to gateway credentials. The registry keeps the calls pointed at the
+providers directly. Shortest is not the same as least coupled.
+
 **Verification on OpenAI, not Claude.** The original split - Claude verifies,
 OpenAI embeds - was justified by Anthropic having no embedding model, and that
 reasoning still holds for `embed()`. It never implied Claude had to own
