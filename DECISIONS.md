@@ -183,6 +183,19 @@ product cannot afford. So the Edit control clears the results. Editing the
 draft does not, because the spans still index an unchanged transcript; only the
 claim list goes stale, and re-auditing replaces it.
 
+**The work is capped, and it rejects rather than truncates.** An OWASP pass over
+the finished build found the one thing that mattered: verification is a model
+call per sentence, the endpoint is public and unauthenticated, and it was about
+to be handed to strangers as a link. So the caller chose how much of my API
+budget to spend. Input length and claim count are now bounded. The claim limit
+refuses the request instead of auditing the first forty sentences, because
+silently checking part of a document tells the reader the rest passed - the same
+failure as the dropped sentence below, arriving by a different road. Prompt
+injection was left documented rather than fixed: here the person pasting the
+transcript is the person reading the verdicts, so it is self-harm, and the note
+that matters is *when* that stops being true. Reasoning in
+[docs/security.md](docs/security.md).
+
 **New tools only with a gate.** Engram (agent memory) came in as optional with
 a 15-minute budget to record, in the heat of the moment, what I reject from the
 agent. If it does not pass the gate, it falls back to manual mode with no

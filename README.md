@@ -144,6 +144,22 @@ pnpm lint
 
 An audit is 7 model calls - one segmentation, one embeddings batch, one
 verification per claim at concurrency 4 - and takes about 13 seconds end to end.
+Because verification scales with the number of sentences, the endpoint caps
+input length and claim count; the reasoning is in
+**[docs/security.md](docs/security.md)**.
+
+## Security
+
+The endpoint is public, unauthenticated and spends money on every request, so it
+got an OWASP Top 10 pass before the URL was shared. The finding that mattered was
+the arithmetic above turned against you: one model call per sentence, no length
+limit, and a link in a stranger's hands. That is fixed, along with a CI job that
+ran third-party code pinned to a movable git tag while holding a token.
+
+Prompt injection is documented rather than fixed, because in this deployment it
+is self-harm - and because the honest note is *when* that stops being true. Full
+findings, including what was checked and found clean, are in
+**[docs/security.md](docs/security.md)**.
 
 ## What was deliberately not built
 

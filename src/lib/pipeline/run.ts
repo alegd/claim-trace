@@ -17,9 +17,18 @@ export interface AuditResult {
   claims: AuditedClaim[];
 }
 
+const MAX_CLAIMS = 40;
+
 export async function runAudit(transcript: string, draft: string): Promise<AuditResult> {
   const chunks = chunkTranscript(transcript);
   const claims = await extractClaims(draft);
+
+  if (claims.length > MAX_CLAIMS) {
+    throw new Error(
+      `The draft produced ${claims.length} claims, above the limit of ${MAX_CLAIMS}. Verification is one model call per claim, so the work is capped rather than truncated.`
+    );
+  }
+
   const retrievals = await retrieve(claims, chunks);
   const verifications = await verifyClaims(claims, retrievals);
 

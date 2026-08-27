@@ -39,10 +39,13 @@ jobs:
             exit 1
           fi
       - run: npm install -g @anthropic-ai/claude-code
-      - name: Install Gentleman Guardian Angel
+      - name: Install Gentleman Guardian Angel v2.10.1, pinned by commit
+        env:
+          GGA_COMMIT: 1124c3672f082c56b033c4e23a30e95d0e8cd593
         run: |
-          git clone --depth 1 --branch v2.10.1 \
+          git clone --no-checkout \
             https://github.com/Gentleman-Programming/gentleman-guardian-angel.git "$RUNNER_TEMP/gga"
+          git -C "$RUNNER_TEMP/gga" checkout --detach "$GGA_COMMIT"
           echo "$RUNNER_TEMP/gga/bin" >> "$GITHUB_PATH"
       - run: gga run --ci
         env:
