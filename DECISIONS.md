@@ -78,6 +78,20 @@ exist any more, so stability is enforced by forced JSON output and a tight
 prompt, and confirmed empirically by the verdict rehearsal in production. That
 rehearsal moved from prudent to load-bearing.
 
+It then earned that. Five runs of the fixture against the deployed URL returned
+the designed sequence four times; once, claim 4 came back `partial` instead of
+`unsupported`, quoting the turn about turnover eating margin. The reasoning was
+defensible - that passage does support the *operational* half of the claim,
+just not the *not technological* half - which is the point: claim 4 is the one
+statement in the fixture assembled from three separate turns, and the boundary
+between "partially stated" and "inferred" is genuinely where the model wavers.
+Everything else held, including every span offset. The honest conclusion is not
+that the verdicts are unstable but that one deliberately ambiguous claim sits on
+the line, and a tool that renders confidence should say so rather than pretend
+to a determinism it does not have. I am not tightening the prompt to force that
+claim down: that would be fitting the prompt to the fixture, and the wavering is
+information about the problem, not a defect in the system.
+
 **Vercel for deployment.** The reference platform for Next.js: import the repo,
 set two environment variables, push. Coolify was the original choice and still
 works, but it needs build and proxy configuration that Vercel does not, and the
