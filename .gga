@@ -1,0 +1,2 @@
+PROVIDER="claude"
+RULES_FILE="AGENTS.md"
