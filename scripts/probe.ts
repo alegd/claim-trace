@@ -1,12 +1,23 @@
-import { DRAFT } from "../src/lib/fixture";
+import { DRAFT, TRANSCRIPT } from "../src/lib/fixture";
+import { chunkTranscript } from "../src/lib/pipeline/chunks";
 import { extractClaims } from "../src/lib/pipeline/claims";
+import { retrieve } from "../src/lib/pipeline/retrieve";
 
 async function runProbe(): Promise<void> {
-  const startedAt = Date.now();
+  const chunks = chunkTranscript(TRANSCRIPT);
   const claims = await extractClaims(DRAFT);
-  console.log(`${claims.length} claims in ${Date.now() - startedAt}ms`);
-  for (const claim of claims) {
-    console.log(`${claim.id}: ${claim.text}`);
+  const retrievals = await retrieve(claims, chunks);
+
+  console.log(`${chunks.length} chunks, ${claims.length} claims`);
+
+  for (const retrieval of retrievals) {
+    const claim = claims.find((candidate) => candidate.id === retrieval.claimId);
+    console.log(`\n${retrieval.claimId}: ${claim?.text}`);
+    for (const scored of retrieval.chunks) {
+      console.log(
+        `  ${scored.score.toFixed(3)} [${scored.chunk.id} ${scored.chunk.speaker} ${scored.chunk.start}-${scored.chunk.end}] ${scored.chunk.text.slice(0, 90)}`,
+      );
+    }
   }
 }
 
