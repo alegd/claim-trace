@@ -2,25 +2,27 @@ import { DRAFT, TRANSCRIPT } from "../src/lib/fixture";
 import { chunkTranscript } from "../src/lib/pipeline/chunks";
 import { extractClaims } from "../src/lib/pipeline/claims";
 import { retrieve } from "../src/lib/pipeline/retrieve";
-
-const PREVIEW_LENGTH = 90;
+import { verifyClaims } from "../src/lib/pipeline/verify";
 
 async function runProbe(): Promise<void> {
+  const startedAt = Date.now();
   const chunks = chunkTranscript(TRANSCRIPT);
   const claims = await extractClaims(DRAFT);
   const retrievals = await retrieve(claims, chunks);
+  const verifications = await verifyClaims(claims, retrievals);
 
-  console.log(`${chunks.length} chunks, ${claims.length} claims`);
+  console.log(`${chunks.length} chunks, ${claims.length} claims, ${Date.now() - startedAt}ms\n`);
 
-  for (const retrieval of retrievals) {
-    const claim = claims.find((candidate) => candidate.id === retrieval.claimId);
-    console.log(`\n${retrieval.claimId}: ${claim?.text}`);
-    for (const scored of retrieval.chunks) {
-      console.log(
-        `  ${scored.score.toFixed(3)} [${scored.chunk.id} ${scored.chunk.speaker} ${scored.chunk.start}-${scored.chunk.end}] ${scored.chunk.text.slice(0, PREVIEW_LENGTH)}`,
-      );
-    }
+  for (const verification of verifications) {
+    const claim = claims.find((candidate) => candidate.id === verification.claimId);
+    console.log(`${verification.claimId} ${verification.verdict.toUpperCase()}`);
+    console.log(`  claim:  ${claim?.text}`);
+    console.log(`  chunk:  ${verification.chunkId ?? "-"}`);
+    console.log(`  quote:  ${verification.quote ?? "-"}`);
+    console.log(`  why:    ${verification.reasoning}\n`);
   }
+
+  console.log(verifications.map((verification) => verification.verdict).join(", "));
 }
 
 runProbe();
