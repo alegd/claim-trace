@@ -13,6 +13,14 @@ async function runProbe(): Promise<void> {
 
   console.log(`${chunks.length} chunks, ${claims.length} claims, ${Date.now() - startedAt}ms\n`);
 
+  for (const retrieval of retrievals) {
+    const scores = retrieval.chunks
+      .map((scored) => `${scored.chunk.id} ${scored.score.toFixed(3)}`)
+      .join("  ");
+    console.log(`${retrieval.claimId} retrieved: ${scores}`);
+  }
+  console.log("");
+
   for (const verification of verifications) {
     const claim = claims.find((candidate) => candidate.id === verification.claimId);
     console.log(`${verification.claimId} ${verification.verdict.toUpperCase()}`);
