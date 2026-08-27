@@ -87,6 +87,15 @@ recording precisely: the Vercel AI SDK played no part in this. It is an
 Apache-2.0 npm package with no platform coupling, and the pipeline would have
 deployed to Coolify unchanged.
 
+**`agentRules: false` in `next.config.ts`.** Next 16 appends a generated block
+into `AGENTS.md` on every `next dev` run. In this repo `AGENTS.md` is not a
+convenience file: it is the standard GGA validates against in CI. A framework
+silently editing the file that defines the rules corrupts the reviewer's input
+and produces a dirty tree on every boot. The flag is Next's own documented
+opt-out (`config-shared.d.ts`, `agentRules?: boolean`, default `true`).
+Discarded alternative: let it write and gitignore the diff, which desynchronises
+the local standard from the one CI reads.
+
 **New tools only with a gate.** Engram (agent memory) came in as optional with
 a 15-minute budget to record, in the heat of the moment, what I reject from the
 agent. If it does not pass the gate, it falls back to manual mode with no
@@ -115,7 +124,8 @@ not driving me.)_
 
 | It proposed | Rejected because |
 |---|---|
-| | |
+| GGA in CI: remove `agentRules: false` from `next.config.ts`, claiming it is not a `NextConfig` property and would fail `tsc --noEmit` | Hallucinated. The property is declared in `next/dist/server/config-shared.d.ts:1574` with `@default true` and an explicit opt-out note, and the `checks` job ran `pnpm typecheck` green on the same commit that GGA said would not compile. Kept, and its intent written up above so the finding does not recur. Its second point — that an unexplained `agentRules: false` looks like an attempt to influence agent behaviour — was a fair instinct on an undocumented flag, and is what the write-up answers |
+| `openai.textEmbeddingModel()` in `llm.ts` (mine, caught by Ale on review) | Deprecated in `@ai-sdk/openai` 4.0.50 in favour of `openai.embeddingModel()`. I had verified the symbol existed in the installed types but not whether it was on its way out. Existing and being current are two different checks |
 | | |
 
 Likely candidates, in case they show up: an `EmbeddingProvider` interface with a
