@@ -1,0 +1,151 @@
+# Decision log
+
+What I decided myself, what I delegated to the agent, what I rejected of what
+the agent proposed, and what I chose not to build. One page. Filled in while
+working, not afterwards.
+
+---
+
+## I decided
+
+Decisions taken before opening the editor, with their discarded alternative.
+
+**No vector DB.** A transcript is ~200 chunks. In-memory cosine over an array
+resolves in under a millisecond. The threshold where pgvector starts paying for
+its operational complexity is in the order of tens of thousands of chunks
+persisted across sessions, and this product does not live there yet. When it
+does, the change touches one function: `retrieve()`.
+
+**Cheap retrieval, expensive verification.** Lexical only loses every
+paraphrase. Semantic only gives false confidence when two sentences talk about
+the same topic and say different things, which is exactly the failure that
+hurts most in a QC tool. Embeddings for the top-k, one verification call per
+claim over only those k.
+
+**Precision over recall.** Synthesised claims, the ones that summarise three
+separate turns into one sentence, come out as unsupported. They are false
+positives and I accept them: in QC, a hallucination that passes the filter
+costs far more than one extra mark a human dismisses in two seconds.
+*(Live case in the fixture: claim 4.)*
+
+**I compute the offsets, not the model.** The model returns `chunk_id` and the
+literal quote. It always invents the character indices. A mapping cascade with
+four levels and explicitly degraded confidence, visible in the UI as a dashed
+border. It is designing for the model's probable failure instead of assuming it
+returns what I asked for.
+
+**Next.js in a single app, framework-free pipeline.** `src/lib/pipeline/*` imports
+nothing from Next. The route handler is 12 lines of transport. I discarded a
+separate NestJS because the scaffold costs me 20 of the 100 minutes and adds
+nothing to the problem. The day it is needed, the pipeline moves as-is into a
+controller.
+
+**Test-first where the code is deterministic, evals where it is not.**
+Red-green TDD in the pure modules: the offset invariant before the chunking,
+the cosine before the function, the four levels of the cascade before
+implementing it. Plus an integration test of `run()` with `llm.ts` stubbed,
+cheap because the interface is two functions. No assert against live model
+output: on that boundary a test is either fragile or lying, and what belongs
+there are evals and golden fixtures (here, the verdict rehearsal in
+production). I set no coverage threshold: the high coverage of `src/lib/pipeline`
+came out as a by-product of test-first, not as a goal. In a team repo with a
+long life I would put TDD as the norm and a threshold as the safety net; here
+the criterion was risk against cost.
+
+**Minimal CI set up before the build, over the empty scaffold.** Lint,
+typecheck, build, the spans test and GGA with `--ci` validating against
+AGENTS.md. GGA as an informational job, not blocking: in a 100-minute build I
+do not delegate veto rights to an automated reviewer; in a team repo I would
+make it blocking. AGENTS.md is the human intent codified and GGA is what makes
+it observable on every push.
+
+**Provider-agnostic SDK, because the pipeline needs two providers.** Anthropic
+does not offer an embedding model - their own documentation says so and points
+at Voyage AI. `embed()` therefore cannot exist on the Anthropic SDK, and T3
+(chunking, embeddings, cosine retrieval) had no implementation path as
+originally planned. The Vercel AI SDK gives one uniform surface over both
+providers: `generateText` with `Output.json()` for verification on Claude,
+`embedMany` for retrieval on OpenAI. This is not the provider indirection the
+guardrails forbid - `llm.ts` stays two plain functions, and swapping either
+provider is one line. Discarded alternative: Anthropic SDK plus a hand-written
+`fetch` to Voyage, which is fewer packages but two different HTTP shapes inside
+the one module the integration test stubs.
+
+**No temperature on the verification call.** The plan specified temperature 0
+for verdict stability. `temperature`, `top_p` and `top_k` are removed on Opus 5,
+Opus 4.8/4.7 and Sonnet 5 - sending them returns a 400. The mechanism does not
+exist any more, so stability is enforced by forced JSON output and a tight
+prompt, and confirmed empirically by the verdict rehearsal in production. That
+rehearsal moved from prudent to load-bearing.
+
+**Vercel for deployment.** The reference platform for Next.js: import the repo,
+set two environment variables, push. Coolify was the original choice and still
+works, but it needs build and proxy configuration that Vercel does not, and the
+deploy step is on the never-cut list. This does not breach the no-new-tooling
+rule because it is a platform already used before, not one being debuted. Worth
+recording precisely: the Vercel AI SDK played no part in this. It is an
+Apache-2.0 npm package with no platform coupling, and the pipeline would have
+deployed to Coolify unchanged.
+
+**New tools only with a gate.** Engram (agent memory) came in as optional with
+a 15-minute budget to record, in the heat of the moment, what I reject from the
+agent. If it does not pass the gate, it falls back to manual mode with no
+drama. General rule: no tooling is debuted inside the build window.
+
+---
+
+## I delegated to the agent
+
+_(Fill in during execution. What I asked for and what prompt I used.)_
+
+| Task | Prompt / instruction | Accepted without changes |
+|---|---|---|
+| | | |
+| | | |
+
+Save 2 or 3 real prompts from the planner and the reviewer exactly as they came
+out. Reconstructing them afterwards shows.
+
+---
+
+## I rejected from the agent
+
+_(Fill in during execution. This column is the one that proves the harness is
+not driving me.)_
+
+| It proposed | Rejected because |
+|---|---|
+| | |
+| | |
+
+Likely candidates, in case they show up: an `EmbeddingProvider` interface with a
+single implementation, a `try/catch` that swallows the error and returns an
+empty array, tests outside the four agreed files (asserts against the live LLM,
+React component tests, tests to raise coverage), a `useEffect` that fires the
+audit on mount.
+
+---
+
+## Did not build
+
+| Discarded | Reason |
+|---|---|
+| Streaming results claim by claim | Time sink. The audit takes ~8s and an honest spinner is worth the same in a demo |
+| Authentication | Nothing to protect yet |
+| File upload | The textarea proves the same thing and does not drag in PDF parsing |
+| E2E | Six LLM calls in the flow: either it is flaky or it demands mocking the whole model, and the real flow is already covered by the integration test with a stub plus the rehearsal in production |
+| Coverage threshold | In ~300 lines where much of it touches an LLM, chasing a number is only achieved by testing mocks or React components. The coverage of `src/lib/pipeline` ended up high as a by-product of test-first |
+| Local GGA hook | A reviewer that blocks commits in 10-minute windows sabotages the build. It lives in CI |
+| | |
+
+---
+
+## What would break first at scale
+
+1. The single embeddings batch. With 2-hour transcripts you have to split and
+   cache by chunk hash.
+2. One call per claim. With 80 claims that is 80 calls. That is where you group
+   claims sharing a top-k.
+3. The in-memory cosine, once documents persist across sessions and you have to
+   search over the whole corpus and not over a single document.
+
