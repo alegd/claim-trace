@@ -207,7 +207,7 @@ Verbatim, typos included. Reconstructing them afterwards shows.
 
 ## I rejected from the agent
 
-This is the column that proves the harness is not driving me. Three of the five
+This is the column that proves the harness is not driving me. Four of the six
 rows are the agent's own mistakes, caught by me or by an acceptance criterion.
 Two are findings from the automated reviewer that did not survive checking.
 
@@ -217,6 +217,7 @@ Two are findings from the automated reviewer that did not survive checking.
 | GGA in CI: remove `agentRules: false` from `next.config.ts`, claiming it is not a `NextConfig` property and would fail `tsc --noEmit` | Hallucinated. The property is declared in `next/dist/server/config-shared.d.ts:1574` with `@default true` and an explicit opt-out note, and the `checks` job ran `pnpm typecheck` green on the same commit that GGA said would not compile. Kept, and its intent written up above so the finding does not recur. Its second point — that an unexplained `agentRules: false` looks like an attempt to influence agent behaviour — was a fair instinct on an undocumented flag, and is what the write-up answers |
 | An env-var validator in `llm.ts`: a `ModelId` type guard plus a `readModelId` throwing its own error (mine, caught by Ale mid-task) | Fifteen lines to duplicate what the library already does. The SDK exports `NoSuchProviderError` and fails with a readable message on a bad `provider:model` string. Two typed constants replaced it. Defensive parsing is earned against untrusted model output, not against my own environment file |
 | Segmentation prompt that split every sentence into atomic facts (mine, caught by the acceptance criterion) | It returned 8 claims where the fixture is designed around 5, breaking the verdict table downstream. The unit is the sentence, because the user audits the draft as written and each sentence gets one verdict and one highlighted span. Over-splitting also multiplies the per-claim verification calls |
+| Segmentation rule telling the model to skip "pure opinion that asserts nothing checkable" (mine, caught by a second transcript with 30 minutes left) | It read a comparative judgement as opinion and silently dropped a whole sentence from the audit, which in a quality control tool is worse than a wrong verdict: the reader is told a sentence was checked when it never was, and silence is indistinguishable from approval. Now only questions are skipped and every other sentence becomes a claim, because deciding whether the source states a judgement is the verdict's job, not segmentation's |
 | `openai.textEmbeddingModel()` in `llm.ts` (mine, caught by Ale on review) | Deprecated in `@ai-sdk/openai` 4.0.50 in favour of `openai.embeddingModel()`. I had verified the symbol existed in the installed types but not whether it was on its way out. Existing and being current are two different checks |
 
 Likely candidates, in case they show up: an `EmbeddingProvider` interface with a
