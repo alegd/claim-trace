@@ -121,6 +121,9 @@ Five stages, all framework-free TypeScript under `src/lib/pipeline/`:
 The model returns a chunk id and a literal quote. It never returns character
 positions, because it invents them. Offsets are computed here.
 
+A diagram of the same flow, a file-by-file map and the two invariants the whole
+thing rests on are in **[docs/architecture.md](docs/architecture.md)**.
+
 ## Running it
 
 ```bash
