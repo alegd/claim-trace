@@ -1,14 +1,20 @@
 import { runAudit } from "@/lib/pipeline/run";
 
 export async function POST(request: Request): Promise<Response> {
-  const body = (await request.json()) as { transcript?: unknown; draft?: unknown };
+  try {
+    const body = (await request.json()) as { transcript?: unknown; draft?: unknown };
 
-  if (typeof body.transcript !== "string" || typeof body.draft !== "string") {
-    return Response.json(
-      { error: "transcript and draft are required strings" },
-      { status: 400 }
-    );
+    if (typeof body.transcript !== "string" || body.transcript.trim().length === 0) {
+      return Response.json({ error: "A source transcript is required." }, { status: 400 });
+    }
+
+    if (typeof body.draft !== "string" || body.draft.trim().length === 0) {
+      return Response.json({ error: "A derived draft is required." }, { status: 400 });
+    }
+
+    return Response.json(await runAudit(body.transcript, body.draft));
+  } catch (err) {
+    console.error("Audit failed", err);
+    return Response.json({ error: "The audit could not be completed." }, { status: 500 });
   }
-
-  return Response.json(await runAudit(body.transcript, body.draft));
 }
