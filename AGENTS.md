@@ -42,7 +42,8 @@ NestJS. Reasoning in DECISIONS.md.
 ## Code conventions
 
 - `PascalCase` for components, `camelCase` for variables, functions and hooks,
-  `kebab-case` for other files, `UPPERCASE` for environment variables.
+  `kebab-case` for other files, `UPPER_SNAKE_CASE` for module-level constants
+  and environment variables.
 - Functions start with a verb. Booleans use `is` / `has` / `can` prefixes.
   Event handlers use the `handle` prefix.
 - No magic numbers. The top-k, the fuzzy threshold, the concurrency limit and

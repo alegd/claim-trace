@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import type { AuditedClaim } from "@/lib/pipeline/run";
 import type { Span, SpanConfidence } from "@/lib/pipeline/spans";
 import type { Verdict } from "@/lib/pipeline/verify";
@@ -48,7 +48,7 @@ interface HighlightedTranscriptProps {
   span: Span | null;
 }
 
-function HighlightedTranscript({ transcript, span }: HighlightedTranscriptProps) {
+function HighlightedTranscript({ transcript, span }: HighlightedTranscriptProps): ReactElement {
   const markRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -74,7 +74,7 @@ function HighlightedTranscript({ transcript, span }: HighlightedTranscriptProps)
   );
 }
 
-export function Auditor({ initialTranscript, initialDraft }: AuditorProps) {
+export function Auditor({ initialTranscript, initialDraft }: AuditorProps): ReactElement {
   const [transcript, setTranscript] = useState(initialTranscript);
   const [draft, setDraft] = useState(initialDraft);
   const [claims, setClaims] = useState<AuditedClaim[] | null>(null);
