@@ -9,9 +9,9 @@ export interface Chunk {
 const SPEAKER_TURN = /^([A-Z]+):[ \t]*/gm;
 
 export function chunkTranscript(transcript: string): Chunk[] {
-  const turns = [...transcript.matchAll(SPEAKER_TURN)];
+  const turns = [...transcript.matchAll(new RegExp(SPEAKER_TURN))];
 
-  return turns.map((turn, index) => {
+  const chunks = turns.map((turn, index) => {
     const start = turn.index + turn[0].length;
     const nextTurn = turns[index + 1];
     const turnEnd = nextTurn === undefined ? transcript.length : nextTurn.index;
@@ -25,4 +25,6 @@ export function chunkTranscript(transcript: string): Chunk[] {
       end: start + text.length
     };
   });
+
+  return chunks.filter((chunk) => chunk.text.length > 0);
 }

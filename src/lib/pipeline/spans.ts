@@ -9,6 +9,7 @@ export interface Span {
 }
 
 const FUZZY_THRESHOLD = 0.75;
+const FUZZY_WINDOW_SLACK = 8;
 
 const TYPOGRAPHIC_REPLACEMENTS: Record<string, string> = {
   "‘": "'",
@@ -89,18 +90,30 @@ function locateBestOverlap(quote: string, chunk: Chunk): Span | null {
   if (quoteTokens.length === 0 || chunkTokens.length === 0) return null;
 
   const wanted = new Set(quoteTokens.map((token) => token.text));
+  const smallestWindow = Math.max(1, quoteTokens.length - FUZZY_WINDOW_SLACK);
+  const largestWindow = Math.min(chunkTokens.length, quoteTokens.length + FUZZY_WINDOW_SLACK);
+
   let bestScore = 0;
-  let bestWindow: Token[] = [];
+  let bestStart = 0;
+  let bestSize = 0;
 
-  for (let start = 0; start < chunkTokens.length; start++) {
-    for (let end = start + 1; end <= chunkTokens.length; end++) {
-      const window = chunkTokens.slice(start, end);
-      const matches = window.filter((token) => wanted.has(token.text)).length;
-      const score = matches / Math.max(window.length, quoteTokens.length);
+  for (let size = smallestWindow; size <= largestWindow; size++) {
+    let matches = 0;
+    for (let i = 0; i < size; i++) {
+      if (wanted.has(chunkTokens[i].text)) matches++;
+    }
 
+    for (let start = 0; start + size <= chunkTokens.length; start++) {
+      if (start > 0) {
+        if (wanted.has(chunkTokens[start - 1].text)) matches--;
+        if (wanted.has(chunkTokens[start + size - 1].text)) matches++;
+      }
+
+      const score = matches / Math.max(size, quoteTokens.length);
       if (score > bestScore) {
         bestScore = score;
-        bestWindow = window;
+        bestStart = start;
+        bestSize = size;
       }
     }
   }
@@ -108,8 +121,8 @@ function locateBestOverlap(quote: string, chunk: Chunk): Span | null {
   if (bestScore < FUZZY_THRESHOLD) return null;
 
   return {
-    start: chunk.start + bestWindow[0].start,
-    end: chunk.start + bestWindow[bestWindow.length - 1].end,
+    start: chunk.start + chunkTokens[bestStart].start,
+    end: chunk.start + chunkTokens[bestStart + bestSize - 1].end,
     confidence: "fuzzy"
   };
 }

@@ -47,14 +47,15 @@ NestJS. Reasoning in DECISIONS.md.
 - Functions start with a verb. Booleans use `is` / `has` / `can` prefixes.
   Event handlers use the `handle` prefix.
 - No magic numbers. The top-k, the fuzzy threshold, the concurrency limit and
-  the temperature are named constants.
+  the input caps are named constants.
 - No abbreviations except `API`, `URL`, `i`, `j`, `err`, `ctx`.
 - TypeScript everywhere, functional only, no classes.
 - `interface` for object shapes, `type` for everything else. `Claim`, `Chunk`
   and `Verification` are interfaces; `Verdict` is a union and stays a `type`.
   Declaring an object shape as an `interface` is not the abstraction seam the
   guardrails forbid.
-- Explicit return types on exported functions. Named exports only.
+- Explicit return types on exported functions. Named exports only, except where
+  a framework mandates a default export (Next.js pages, layouts and configs).
 - Guard clauses and early returns for edge cases. Never swallow an error to
   return an empty result.
 - No TODOs, placeholders or half-finished code. Admit uncertainty and ask

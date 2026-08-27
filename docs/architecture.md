@@ -21,7 +21,7 @@ flowchart TD
   RET --> V["verifyClaims()<br/>one call per claim<br/>concurrency 4"]
   CLAIMS --> V
 
-  V --> VER["Verification[]<br/>verdict, chunkId, quote, reasoning"]
+  V --> VER["Verification[]<br/>claimId, verdict, chunkId, quote, reasoning"]
 
   VER --> S["locateQuote()<br/>four-level cascade"]
   CHUNKS --> S
@@ -34,9 +34,10 @@ flowchart TD
   class CH,S pure
 ```
 
-Green boxes are deterministic and unit-tested. Amber boxes call a model and are
-covered instead by `run.test.ts` with `llm.ts` stubbed, because asserting on live
-model output produces a test that is either fragile or lying.
+Green boxes are deterministic. Amber boxes call a model, so their unit tests
+stub `llm.ts` rather than asserting on live output, which would produce a test
+that is either fragile or lying. `run.test.ts` stubs the same seam to cover the
+whole flow at once.
 
 ## Where things live
 
@@ -49,7 +50,7 @@ model output produces a test that is either fragile or lying.
 | `src/lib/pipeline/spans.ts` | Quote to absolute offsets, with a confidence label |
 | `src/lib/pipeline/run.ts` | Orchestrates the five stages. No transport concerns |
 | `src/lib/llm.ts` | The only file that talks to a provider. Two functions, `complete` and `embed` |
-| `src/app/api/audit/route.ts` | Transport. Parses the body, calls `runAudit`, returns JSON |
+| `src/app/api/audit/route.ts` | Transport. Parses the body, enforces the input size limits, calls `runAudit`, returns JSON |
 | `src/components/Auditor.tsx` | The single screen |
 
 `src/lib/pipeline/*` imports nothing from Next.js. That is enforced by
@@ -58,9 +59,11 @@ different runtime without edits.
 
 ## The two invariants
 
-**Offsets are absolute over the original transcript.** A chunk satisfies
-`transcript.slice(chunk.start, chunk.end) === chunk.text`, and a span satisfies
-the same against its quote. `chunks.test.ts` asserts this over every turn of the
+**Offsets are absolute over the original transcript.** Every chunk satisfies
+`transcript.slice(chunk.start, chunk.end) === chunk.text`. A span satisfies the
+same against its quote only at levels 1 and 2; levels 3 and 4 deliberately
+return a region that is wider than the quote, which is exactly what their
+`fuzzy` and `chunk` labels declare. `chunks.test.ts` asserts this over every turn of the
 fixture. If it ever breaks, the interface highlights the wrong words while
 looking completely confident, which is the worst failure this product has.
 

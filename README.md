@@ -86,8 +86,8 @@ Five stages, all framework-free TypeScript under `src/lib/pipeline/`:
    a single passage; combining passages to build support is what produces the
    unsupported verdict above.
 5. **Map** the returned quote back to absolute offsets through a four-level
-   cascade - exact, normalised, fuzzy, whole-turn - each carrying its own
-   confidence label. Approximate matches are drawn with a dashed border, so the
+   cascade - exact, normalised, fuzzy, whole-turn - carrying one of three
+   confidence labels, since the first two levels are both exact matches. Approximate matches are drawn with a dashed border, so the
    interface distinguishes what the system knows from what it approximated.
 
 The model returns a chunk id and a literal quote. It never returns character

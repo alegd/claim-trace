@@ -19,13 +19,22 @@ export interface AuditResult {
 
 const MAX_CLAIMS = 40;
 
+export const TOO_MANY_CLAIMS = "TOO_MANY_CLAIMS";
+
+export function isTooManyClaimsError(error: unknown): boolean {
+  return error instanceof Error && (error as { code?: string }).code === TOO_MANY_CLAIMS;
+}
+
 export async function runAudit(transcript: string, draft: string): Promise<AuditResult> {
   const chunks = chunkTranscript(transcript);
   const claims = await extractClaims(draft);
 
   if (claims.length > MAX_CLAIMS) {
-    throw new Error(
-      `The draft produced ${claims.length} claims, above the limit of ${MAX_CLAIMS}. Verification is one model call per claim, so the work is capped rather than truncated.`
+    throw Object.assign(
+      new Error(
+        `The draft produced ${claims.length} claims, above the limit of ${MAX_CLAIMS}. Verification is one model call per claim, so the request is refused rather than partly audited.`
+      ),
+      { code: TOO_MANY_CLAIMS }
     );
   }
 

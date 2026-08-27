@@ -35,7 +35,7 @@ border. It is designing for the model's probable failure instead of assuming it
 returns what I asked for.
 
 **Next.js in a single app, framework-free pipeline.** `src/lib/pipeline/*` imports
-nothing from Next. The route handler is 12 lines of transport. I discarded a
+nothing from Next. The route handler is transport and nothing else. I discarded a
 separate NestJS because the scaffold costs me 20 of the 100 minutes and adds
 nothing to the problem. The day it is needed, the pipeline moves as-is into a
 controller.
@@ -53,7 +53,7 @@ long life I would put TDD as the norm and a threshold as the safety net; here
 the criterion was risk against cost.
 
 **Minimal CI set up before the build, over the empty scaffold.** Lint,
-typecheck, build, the spans test and GGA with `--ci` validating against
+typecheck, build, the whole test suite and GGA with `--ci` validating against
 AGENTS.md. GGA as an informational job, not blocking: in a 100-minute build I
 do not delegate veto rights to an automated reviewer; in a team repo I would
 make it blocking. AGENTS.md is the human intent codified and GGA is what makes
@@ -245,11 +245,11 @@ audit on mount.
 
 | Discarded | Reason |
 |---|---|
-| Streaming results claim by claim | Time sink. The audit takes ~8s and an honest spinner is worth the same in a demo |
+| Streaming results claim by claim | Time sink. The audit takes about 13 seconds and an honest spinner is worth the same in a demo |
 | Authentication | Nothing to protect yet |
 | File upload | The textarea proves the same thing and does not drag in PDF parsing |
-| E2E | Six LLM calls in the flow: either it is flaky or it demands mocking the whole model, and the real flow is already covered by the integration test with a stub plus the rehearsal in production |
-| Coverage threshold | In ~300 lines where much of it touches an LLM, chasing a number is only achieved by testing mocks or React components. The coverage of `src/lib/pipeline` ended up high as a by-product of test-first |
+| E2E | Seven provider calls in the flow: either it is flaky or it demands mocking the whole model, and the real flow is already covered by the integration test with a stub plus the rehearsal in production |
+| Coverage threshold | In a pipeline where much of it touches an LLM, chasing a number is only achieved by testing mocks or React components. The coverage of `src/lib/pipeline` ended up high as a by-product of test-first |
 | Local GGA hook | A reviewer that blocks commits in 10-minute windows sabotages the build. It lives in CI |
 
 ---
@@ -258,8 +258,8 @@ audit on mount.
 
 1. The single embeddings batch. With 2-hour transcripts you have to split and
    cache by chunk hash.
-2. One call per claim. With 80 claims that is 80 calls. That is where you group
-   claims sharing a top-k.
+2. One call per claim. The cap of 40 exists precisely because this is the
+   term that grows; past it you group claims sharing a top-k.
 3. The in-memory cosine, once documents persist across sessions and you have to
    search over the whole corpus and not over a single document.
 

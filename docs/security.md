@@ -27,6 +27,26 @@ than truncates** - silently auditing the first forty sentences would tell the
 reader the rest were checked when they never were, which is the same failure as
 the dropped sentence in DECISIONS.md, arriving by a different road.
 
+### The same finding again, in CPU rather than tokens — A04
+
+The fix above bounded the *model calls* and I called the finding closed. It was
+not. `locateBestOverlap` searched every `[start, end]` token window and rebuilt
+each one, which is cubic in the length of a speaker turn. Measured against the
+real function: 500 tokens took 97ms, 2,000 took 5.5 seconds, and **4,000 took
+113 seconds** of synchronous CPU - which blocks the event loop, so the server
+stops serving everyone, not just the caller. A 100,000-character transcript is
+allowed, and nothing caps the length of a single turn.
+
+Reaching it needs only a quote that fails the two exact levels, which the caller
+influences directly. Now the search is bounded to windows near the quote's own
+length and counts matches by rolling update instead of reallocating: the same
+4,000-token turn takes **2ms**, and the four cascade tests still pass.
+
+The lesson is the one worth keeping. I audited for the resource that was
+expensive and obvious - the paid API call - and missed the one that was free
+until it wasn't. Bounding an interface means bounding all the work behind it,
+not the work you were thinking about.
+
 ### Third-party CI code pinned to a mutable reference — A08, Integrity
 
 The review job cloned its reviewer at `--branch v2.10.1` and ran it with

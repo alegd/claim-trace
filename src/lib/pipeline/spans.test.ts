@@ -5,7 +5,8 @@ import { locateQuote } from "./spans";
 
 const TYPOGRAPHIC_TRANSCRIPT = `ANALYST: opening question?
 
-EXPERT: He said “we cut costs” and it stuck.`;
+EXPERT: He said “we    cut
+costs” and it stuck.`;
 
 const DRIFTING_TRANSCRIPT = `ANALYST: opening question?
 
@@ -34,7 +35,7 @@ describe("locateQuote", () => {
 
     expect(span.confidence).toBe("exact");
     expect(TYPOGRAPHIC_TRANSCRIPT.slice(span.start, span.end)).toBe(
-      "He said “we cut costs” and it stuck."
+      "He said “we    cut\ncosts” and it stuck."
     );
   });
 

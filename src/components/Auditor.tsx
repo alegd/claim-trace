@@ -30,7 +30,7 @@ const SPAN_STYLES: Record<SpanConfidence, string> = {
 };
 
 const SPAN_TITLES: Record<SpanConfidence, string> = {
-  exact: "Exact match: the quote was found in the source character for character.",
+  exact: "Exact match: the quote was found in the source, ignoring only punctuation style, casing and spacing.",
   fuzzy: "Approximate match: the closest overlapping wording, not a literal one.",
   chunk: "Whole turn: the quote could not be located precisely inside it."
 };
@@ -89,6 +89,7 @@ export function Auditor({ initialTranscript, initialDraft }: AuditorProps): Reac
     setIsAuditing(true);
     setError(null);
     setSelectedClaimId(null);
+    setClaims(null);
 
     try {
       const response = await fetch("/api/audit", {

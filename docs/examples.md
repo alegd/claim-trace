@@ -145,3 +145,33 @@ report a verdict you did not really compute.
 
 Interviews in the format this tool targets always carry speaker labels, which is
 why the limit was documented rather than removed inside the build window.
+
+---
+
+## Known limits, found and not yet fixed
+
+A cold review of the finished build surfaced these. They are listed because an
+unlisted known issue is worse than a listed one.
+
+- **Any line-initial uppercase word followed by a colon becomes a speaker.**
+  `NOTE:`, `TODO:`, `ACTION:` and `SUMMARY:` all split a turn and are attributed
+  to a person who does not exist. The regex is `/^([A-Z]+):[ \t]*/gm`. Tightening
+  it needs a corpus of real transcript formats to tighten it *against*, which is
+  the work, not the line of code.
+- **Text before the first speaker label is unreachable.** A dateline or a header
+  above the first turn is never a passage, so nothing can be supported by it.
+- **The chunk id the model returns is trusted.** `runAudit` resolves it against
+  every chunk rather than against the four that claim was actually shown. A model
+  that quotes one turn and names another would highlight the wrong turn while
+  reporting `supported` - the worst output this tool can produce. The check is
+  cheap because `run.ts` already holds the retrievals; it is not written yet.
+- **One malformed verification discards the rest.** `verifyClaims` uses
+  `Promise.all`, so a single unparseable response throws away every other paid
+  result in the batch.
+- **A single turn longer than the embedding context fails the whole audit.**
+  Chunks are one speaker turn with no ceiling, and `text-embedding-3-small` stops
+  at 8,191 tokens.
+
+Empty speaker turns used to break an audit outright, because an empty string in
+the embeddings batch is rejected by the provider and took the whole request down
+with it. Those are now dropped at chunking.

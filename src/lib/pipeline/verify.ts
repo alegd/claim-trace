@@ -45,14 +45,14 @@ function buildVerificationPrompt(claim: Claim, chunks: ScoredChunk[]): string {
 }
 
 function parseVerification(raw: string, claimId: string): Verification {
-  const parsed = JSON.parse(raw) as Record<string, unknown>;
+  const parsed = JSON.parse(raw) as Record<string, unknown> | null;
 
-  if (!isVerdict(parsed.verdict)) {
+  if (!isVerdict(parsed?.verdict)) {
     throw new Error(
-      `Verification of ${claimId} returned an unknown verdict: ${JSON.stringify(parsed.verdict)}`
+      `Verification of ${claimId} returned an unknown verdict: ${JSON.stringify(parsed?.verdict)}`
     );
   }
-  if (typeof parsed.reasoning !== "string") {
+  if (typeof parsed?.reasoning !== "string") {
     throw new Error(`Verification of ${claimId} returned no reasoning`);
   }
 
