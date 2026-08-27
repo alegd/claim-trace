@@ -133,11 +133,13 @@ the local standard from the one CI reads.
 **`run.test.ts` was written after `run.ts`, breaking my own ordering rule.**
 AGENTS.md says all four permitted test files are written before the code they
 test. PLAN.md sequences T5 (spans, `run.ts`, route) before T5b (`run.test.ts`).
-The two documents disagree and I followed the plan, so the orchestrator existed
-untested. Faced with deleting fifty lines of orchestration already verified
-end to end by the curl gate, or writing the test late and recording the breach,
-I chose to record it: a rewrite would have reproduced near-identical code to buy
-confidence the gate had already given me. The other three test files were
+The two documents disagree and the agent followed the plan, so the orchestrator
+existed untested. It stopped there rather than continuing, put the conflict to
+me with both options costed, and waited: the guardrail preamble says rules are
+not broken without explicit confirmation, and this is what that clause is for.
+I chose to write the test late and record the breach - a rewrite would have
+reproduced near-identical code to buy confidence the curl gate had already
+given me. The other three test files were
 genuinely red first, and that is where test-first was doing design work rather
 than ceremony.
 
@@ -176,22 +178,24 @@ drama. General rule: no tooling is debuted inside the build window.
 
 ## I delegated to the agent
 
-_(Fill in during execution. What I asked for and what prompt I used.)_
+Verbatim, typos included. Reconstructing them afterwards shows.
 
 | Task | Prompt / instruction | Accepted without changes |
 |---|---|---|
-| | | |
-| | | |
-
-Save 2 or 3 real prompts from the planner and the reviewer exactly as they came
-out. Reconstructing them afterwards shows.
+| T1, the LLM seam | `T1` | No. It shipped `openai.textEmbeddingModel()`, which exists in the installed types but is deprecated in favour of `embeddingModel()`. I caught it on review |
+| Provider selection | `go with T2, use OPENAI instead of ANTHROPIC` | Yes, one line. The two-provider split had been justified by Anthropic having no embedding model, which never implied Claude had to own the verification call |
+| Decoupling `llm.ts` | `the functions on llm.ts file are not well done, the code must be generic and not attached to a single provider, every time I want to change provider as it is right now I have to modify the code` | No, and correctly so. It refused to build the provider interface I was implicitly asking for, quoted the guardrail that forbids it, and offered three costed options instead. I took the SDK's own registry |
+| Cutting ceremony | `be careful with overengineering things, just a comment` | Yes. Fifteen lines of environment-variable validation, duplicating an error the SDK already throws, became two typed constants |
+| Sourcing | `always read the official docs, do not go into the node_modules unless is necesary` | Yes. It had been reading installed `.d.ts` files first, which is how the deprecated function got through. The docs would have shown it |
+| The test-ordering conflict | `lets go with the second option, do not delete what is already implemented` | Yes. It had stopped and asked rather than choosing for me |
 
 ---
 
 ## I rejected from the agent
 
-_(Fill in during execution. This column is the one that proves the harness is
-not driving me.)_
+This is the column that proves the harness is not driving me. Three of the five
+rows are the agent's own mistakes, caught by me or by an acceptance criterion.
+Two are findings from the automated reviewer that did not survive checking.
 
 | It proposed | Rejected because |
 |---|---|
@@ -200,7 +204,6 @@ not driving me.)_
 | An env-var validator in `llm.ts`: a `ModelId` type guard plus a `readModelId` throwing its own error (mine, caught by Ale mid-task) | Fifteen lines to duplicate what the library already does. The SDK exports `NoSuchProviderError` and fails with a readable message on a bad `provider:model` string. Two typed constants replaced it. Defensive parsing is earned against untrusted model output, not against my own environment file |
 | Segmentation prompt that split every sentence into atomic facts (mine, caught by the acceptance criterion) | It returned 8 claims where the fixture is designed around 5, breaking the verdict table downstream. The unit is the sentence, because the user audits the draft as written and each sentence gets one verdict and one highlighted span. Over-splitting also multiplies the per-claim verification calls |
 | `openai.textEmbeddingModel()` in `llm.ts` (mine, caught by Ale on review) | Deprecated in `@ai-sdk/openai` 4.0.50 in favour of `openai.embeddingModel()`. I had verified the symbol existed in the installed types but not whether it was on its way out. Existing and being current are two different checks |
-| | |
 
 Likely candidates, in case they show up: an `EmbeddingProvider` interface with a
 single implementation, a `try/catch` that swallows the error and returns an
@@ -220,7 +223,6 @@ audit on mount.
 | E2E | Six LLM calls in the flow: either it is flaky or it demands mocking the whole model, and the real flow is already covered by the integration test with a stub plus the rehearsal in production |
 | Coverage threshold | In ~300 lines where much of it touches an LLM, chasing a number is only achieved by testing mocks or React components. The coverage of `src/lib/pipeline` ended up high as a by-product of test-first |
 | Local GGA hook | A reviewer that blocks commits in 10-minute windows sabotages the build. It lives in CI |
-| | |
 
 ---
 
