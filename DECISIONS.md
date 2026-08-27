@@ -151,6 +151,22 @@ only end to end. Written first, that test would have caught it earlier. Written
 late, it still caught it - which is an argument for the test, not for the
 ordering.
 
+**A fixed light theme, because here the colour is the information.** The
+scaffold shipped a `prefers-color-scheme` switch. In a tool whose entire output
+is green, amber and red, the palette is not decoration and it should not change
+because of the reviewer's operating system setting. The dark branch is deleted
+rather than duplicated, which is also one less thing to get wrong in a recording.
+
+**The transcript panel stops being editable once an audit exists.** You cannot
+highlight text inside a `textarea`, so after an audit the panel renders as
+markup and the spans are sliced into it. That forced a question worth more than
+the highlight itself: what happens if someone edits the transcript afterwards?
+The offsets would still be valid numbers pointing at text that had moved, and
+the tool would confidently highlight the wrong words - the one failure this
+product cannot afford. So the Edit control clears the results. Editing the
+draft does not, because the spans still index an unchanged transcript; only the
+claim list goes stale, and re-auditing replaces it.
+
 **New tools only with a gate.** Engram (agent memory) came in as optional with
 a 15-minute budget to record, in the heat of the moment, what I reject from the
 agent. If it does not pass the gate, it falls back to manual mode with no
