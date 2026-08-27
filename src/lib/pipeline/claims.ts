@@ -11,7 +11,7 @@ Rules:
 - The unit is the sentence. Every sentence that asserts something checkable becomes exactly one claim. Do not decompose a sentence further, even when it bundles several facts: the reader audits the draft as written, sentence by sentence.
 - Keep the sentence's own wording. Copy figures, percentages, currency amounts, dates and proper nouns exactly as they appear. Never round, convert, normalise or rephrase them.
 - Resolve a pronoun only when the sentence would otherwise be unintelligible on its own.
-- Skip sentences that are questions, or pure opinion that asserts nothing checkable.
+- Skip a sentence only when it is a question. Every other sentence becomes a claim, including judgements, comparisons and predictions: whether the source states them is the verdict's job, not yours, and silently dropping a sentence would tell the reader it was checked when it never was.
 - Preserve the reading order of the draft.
 
 Return only JSON of the form {"claims":[{"id":"c1","text":"..."}]}, with ids c1, c2, c3 in order. No prose, no markdown, no explanation.`;

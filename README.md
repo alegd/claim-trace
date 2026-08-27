@@ -4,7 +4,7 @@ Paste a source transcript and a text derived from it. Every statement in the
 derived text comes back marked **supported**, **partial** or **unsupported**,
 with the exact fragment of the source that backs it highlighted in place.
 
-**Live:** https://claim-trace-zendinits-projects.vercel.app — preloaded with a
+**Live:** https://claims.gueden.com — preloaded with a
 fixture, so it runs in one click.
 
 ---
