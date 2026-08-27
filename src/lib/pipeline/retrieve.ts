@@ -18,7 +18,7 @@ export interface Retrieval {
 export async function retrieve(
   claims: Claim[],
   chunks: Chunk[],
-  k: number = TOP_K,
+  topK: number = TOP_K
 ): Promise<Retrieval[]> {
   if (chunks.length === 0) {
     return claims.map((claim) => ({ claimId: claim.id, chunks: [] }));
@@ -26,7 +26,7 @@ export async function retrieve(
 
   const vectors = await embed([
     ...claims.map((claim) => claim.text),
-    ...chunks.map((chunk) => chunk.text),
+    ...chunks.map((chunk) => chunk.text)
   ]);
   const claimVectors = vectors.slice(0, claims.length);
   const chunkVectors = vectors.slice(claims.length);
@@ -36,12 +36,9 @@ export async function retrieve(
     chunks: chunks
       .map((chunk, chunkIndex) => ({
         chunk,
-        score: cosineSimilarity(
-          claimVectors[claimIndex],
-          chunkVectors[chunkIndex],
-        ),
+        score: cosineSimilarity(claimVectors[claimIndex], chunkVectors[chunkIndex])
       }))
       .sort((first, second) => second.score - first.score)
-      .slice(0, k),
+      .slice(0, topK)
   }));
 }

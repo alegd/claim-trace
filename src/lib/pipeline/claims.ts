@@ -20,7 +20,7 @@ function parseClaim(value: unknown, index: number): Claim {
   const candidate = value as Partial<Claim> | null;
   if (typeof candidate?.id !== "string" || typeof candidate?.text !== "string") {
     throw new Error(
-      `Claim segmentation returned a malformed claim at position ${index}: ${JSON.stringify(value)}`,
+      `Claim segmentation returned a malformed claim at position ${index}: ${JSON.stringify(value)}`
     );
   }
   return { id: candidate.id, text: candidate.text };
@@ -34,9 +34,7 @@ export async function extractClaims(draft: string): Promise<Claim[]> {
   const claims = (parsed as { claims?: unknown })?.claims;
 
   if (!Array.isArray(claims)) {
-    throw new Error(
-      `Claim segmentation returned no claims array. Received: ${raw.slice(0, 200)}`,
-    );
+    throw new Error(`Claim segmentation returned no claims array. Received: ${raw.slice(0, 200)}`);
   }
 
   return claims.map(parseClaim);

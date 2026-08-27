@@ -22,7 +22,7 @@ export function chunkTranscript(transcript: string): Chunk[] {
       speaker: turn[1],
       text,
       start,
-      end: start + text.length,
+      end: start + text.length
     };
   });
 }
