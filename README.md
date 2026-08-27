@@ -64,42 +64,14 @@ verdict's job. Re-run against the live URL, the same draft now returns five
 claims and the missing sentence comes back `unsupported`, which is the correct
 answer. The original fixture still returns its five verdicts unchanged.
 
-Paste this pair into the app to reproduce it:
-
-<details>
-<summary>Second transcript and draft</summary>
-
-```
-INTERVIEWER: How did net revenue retention move while you were there?
-
-OPERATOR: When I joined in 2019 we were at about 104%. By the time I left in 2022 we had pushed it to 118%. Almost all of that came from expansion inside existing accounts, not from reducing logo churn.
-
-INTERVIEWER: What drove the expansion?
-
-OPERATOR: Seat growth in the enterprise tier, mostly. We launched usage-based pricing for the API in 2021 and that added a second expansion lever, but seats were the bulk of it.
-
-INTERVIEWER: And logo churn itself?
-
-OPERATOR: Stubborn. Around 14% annually in the SMB segment the entire time. Enterprise was under 4%, which is where the money is anyway.
-
-INTERVIEWER: Did the onboarding changes help?
-
-OPERATOR: We rebuilt onboarding in the second half of 2021 and cut time to first value from six weeks to under two. SMB churn did move after that, but I cannot give you a clean number because we changed the definition of an active account in the same quarter.
-
-INTERVIEWER: What about the competitive picture?
-
-OPERATOR: The bundlers are the threat. When a platform gives your category away for free inside a suite, you are not competing on product any more, you are competing on procurement.
-```
-
-```
-Net revenue retention rose from roughly 104% in 2019 to 118% by 2022. Logo churn ran at about 14% annually in SMB while enterprise stayed under 4%. SMB churn dropped to single digits after the onboarding rebuild. The onboarding rebuild was a better investment than the usage-based pricing launch. The company expects net revenue retention to exceed 125% by 2024.
-```
-
-</details>
-
 Two things held without modification: chunking is not tied to the first
 transcript's speaker labels, and every span in the new document mapped back to
 its exact quote.
+
+That transcript is in **[docs/examples.md](docs/examples.md)** with two more, all
+pasteable and all showing real output: a draft whose figure drifted from 12 weeks
+to 8 and came back `partial` with the discrepancy named, and a source with no
+speaker turns that shows exactly where chunking stops working.
 
 ## How it works
 
